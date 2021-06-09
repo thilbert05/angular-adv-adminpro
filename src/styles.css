@@ -16,3 +16,12 @@
   align-items: center;
   justify-content: center;
 }
+
+.img-avatar {
+  display: block;
+  margin-bottom: 15px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 200px;
+  height: 200px;
+}

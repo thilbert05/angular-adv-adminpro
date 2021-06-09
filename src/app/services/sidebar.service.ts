@@ -30,6 +30,10 @@ export class SidebarService {
           title: 'Rxjs',
           url: 'rxjs'
         },
+        {
+          title: 'Mi Perfil',
+          url: 'miperfil'
+        },
       ]
     }
   ];

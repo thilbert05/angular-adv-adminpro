@@ -8,6 +8,7 @@ import { environment } from 'src/environments/environment';
 
 import { LoginForm } from '../interfaces/login-form.interface';
 import { RegisterForm } from '../interfaces/register-form.interface';
+import { Usuario } from '../models/usuarios.model';
 
 declare const gapi: any;
 
@@ -18,11 +19,20 @@ export class UsuarioService {
   baseUrl = environment.base_url;
 
   public auth2: any;
+  public usuario: Usuario;
 
   constructor(private http: HttpClient,
     private router: Router,
     private ngZone: NgZone) {
     this.googleInit();
+  }
+
+  get token(): string {
+    return localStorage.getItem('token') || '';
+  }
+
+  get uid(): string {
+    return this.usuario.uid || '';
   }
 
   googleInit() {
@@ -42,16 +52,20 @@ export class UsuarioService {
   }
 
   validarToken(): Observable<boolean> {
-    const token = localStorage.getItem('token') || '';
+
     return this.http.get(`${this.baseUrl}/auth/login/renew`, {
       headers: new HttpHeaders({
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${this.token}`,
       }),
     }).pipe(
-      tap((resp: { ok: boolean; token: string }) => {
+      map((resp: { ok: boolean; token: string; usuario: Usuario }) => {
+        const {nombre, email, img, uid, role, google} = resp.usuario;
+
+        this.usuario = new Usuario(nombre, email, '', img, google, role, uid);
         localStorage.setItem('token', resp.token);
+        localStorage.setItem('usuario', JSON.stringify(this.usuario));
+        return true;
       }),
-      map(resp => true),
       catchError((error) => of(false)),
     );
   }
@@ -62,6 +76,15 @@ export class UsuarioService {
         localStorage.setItem('token', resp.token);
       })
     );
+  }
+
+  actualizarUsuario(formData: {nombre: string; email: string, role:string }) {
+    formData = {...formData, role: this.usuario.role};
+    return this.http.put(`${this.baseUrl}/usuarios/${this.uid}`, formData, {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${this.token}`,
+      }),
+    })
   }
 
   login(formData: LoginForm) {
@@ -82,6 +105,7 @@ export class UsuarioService {
 
   logout() {
     localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
 
     this.auth2.signOut().then(() => {
       this.ngZone.run(() => {
