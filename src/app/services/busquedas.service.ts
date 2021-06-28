@@ -8,6 +8,12 @@ import { Hospital } from '../models/hospital.model';
 import { Medico } from '../models/medicos.model';
 import { Usuario } from '../models/usuarios.model';
 
+interface BusquedaGlobal {
+  ok: boolean;
+  usuarios?: Usuario[];
+  medicos?: Medico[];
+  hospitales?: Hospital[];
+}
 
 @Injectable({
   providedIn: 'root'
@@ -66,6 +72,11 @@ export class BusquedasService {
       );
   }
 
-
+  busquedaGlobal(termino: string) {
+    const url = `${this.baseUrl}/todo/${termino}`;
+    return this.http.get<BusquedaGlobal>(url, {
+      headers: this.headers
+    });
+  }
 
 }
